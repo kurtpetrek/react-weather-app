@@ -14,7 +14,7 @@ export default function WelcomeView(props) {
         <p>In order to tell you the weather I’m going to need a location.</p>
         <div>
           <button onClick={props.getUserLocation}>Get Location</button>
-          <button>Enter Location</button>
+          <button onClick={props.buildUserSearchScreen}>Enter Location</button>
         </div>
       </div>
     </div>
