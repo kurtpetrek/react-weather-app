@@ -150,6 +150,7 @@ export default class App extends Component {
     } else if (this.state.currentView.displayWeatherView) {
       return (
         <WeatherView
+          handleSearchNewLocation={this.buildUserSearchScreen}
           weather={this.state.weatherData}
           forecast={this.state.forecast}
           location={this.state.location.cityAndCountry}
