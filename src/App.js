@@ -13,6 +13,7 @@ export default class App extends Component {
         enterLocationView: false,
         displayWeatherView: false,
         loadingView: false,
+        errorView : false,
       },
       location: {},
       weatherData: {},
@@ -72,7 +73,12 @@ export default class App extends Component {
             return prevState;
           }, this.getWeatherFromLatLng);
         }
-      )
+      ).catch((e) => {
+        console.log(e);
+        this.setState((prevState) => {
+          return {currentView: {errorView: true}};
+        })
+      });
     });
   };
 
@@ -82,13 +88,19 @@ export default class App extends Component {
     fetch(requestString).then(
       (data) => { return data.json()}
     ).then((data) => {
-      this.setState((prevState)=>{
-        prevState.weatherData = data;
-        console.log(prevState);
-        return prevState;
-      }, ()=>{
-        this.getCityFromLatLong();
-      });
+      if (data) {
+        this.setState((prevState)=>{
+          prevState.weatherData = data;
+          return prevState;
+        }, ()=>{
+          this.getCityFromLatLong();
+        });
+      }
+    }).catch((e) => {
+      console.log(e);
+      this.setState((prevState) => {
+        return {currentView: {errorView: true}};
+      })
     });
   };
 
@@ -98,15 +110,18 @@ export default class App extends Component {
     fetch(requestString).then(
       (data) => data.json()
     ).then((data) => {
-      console.log(data);
-      this.setState((prevState)=> {
-        prevState.location.cityAndCountry = data.results[9].formatted_address;
-        console.log(prevState);
-        return prevState;
-      }, this.getForecastFromLatLong)
-    })
-    .catch((e) => {
-      this.getForecastFromLatLong();
+      if (data.results[9].formatted_address) {
+        this.setState((prevState)=> {
+          prevState.location.cityAndCountry = data.results[9].formatted_address;
+          console.log(prevState);
+          return prevState;
+        }, this.getForecastFromLatLong);
+      }
+    }).catch((e) => {
+      console.log(e);
+      this.setState((prevState) => {
+        return {currentView: {errorView: true}};
+      });
     });
   }
 
@@ -116,17 +131,22 @@ export default class App extends Component {
     fetch(requestString).then((data) => {
       return data.json();
     }).then((data) => {
+      if (data) {
+        this.setState((prevState) => {
+          prevState.forecast = data;
+          for (var prop in prevState.currentView) {
+            prevState.currentView[prop] = false;
+          }
+          prevState.currentView.displayWeatherView = true;
+          return prevState;
+        })
+      }
+    }).catch((e) => {
+      console.log(e);
       this.setState((prevState) => {
-        prevState.forecast = data;
-        for (var prop in prevState.currentView) {
-          prevState.currentView[prop] = false;
-        }
-        prevState.currentView.displayWeatherView = true;
-        return prevState;
-      }, ()=>{
-        console.log(this.state);
+        return {currentView: {errorView: true}};
       })
-    })
+    });
   };
 
   render() {
@@ -141,6 +161,7 @@ export default class App extends Component {
       return (
           <EnterLocationView
             handleLocationSubmit={this.getLocationByGoogleAPI}
+            handleGetUserLocation={this.getUserLocationByGeolocation}
           />
       )
     } else if (this.state.currentView.loadingView) {
@@ -155,6 +176,16 @@ export default class App extends Component {
           forecast={this.state.forecast}
           location={this.state.location.cityAndCountry}
         />
+      );
+    } else if (this.state.currentView.errorView) {
+      return (
+        <div>
+          <h1 style={{position: 'absolute', textAlign: 'center', width: '100%'}}>Error Please Try Again</h1>
+          <EnterLocationView
+            handleLocationSubmit={this.getLocationByGoogleAPI}
+            handleGetUserLocation={this.getUserLocationByGeolocation}
+          />
+        </div>
       );
     }
   }

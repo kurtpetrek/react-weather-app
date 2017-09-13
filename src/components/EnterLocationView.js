@@ -29,6 +29,7 @@ export default function EnterLocationView(props) {
           <input type="text" onChange={setUserInput}/>
           <button type="submit">Enter Location</button>
         </form>
+        <button onClick={props.handleGetUserLocation}>Use Current Location </button>
       </div>
     </div>
   )
